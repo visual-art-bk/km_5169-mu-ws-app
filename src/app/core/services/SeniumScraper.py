@@ -23,7 +23,7 @@ class SeniumScraper:
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
         self.target_link = None
-        
+
     def goto(self, url):
         self.target_link = url
         self.driver.get(url)
@@ -144,6 +144,38 @@ class SeniumScraper:
                 self.logger.info("iframe에서 복귀")
                 return True
             return False
+
+    def scroll_page_to_end(self, sleep=0.5, max_attempts=10):
+        """
+        웹 페이지가 끝까지 로드될 때까지 스크롤하는 메서드.
+        - sleep: 각 스크롤 후 대기 시간 (초)
+        - max_attempts: 스크롤 시도 횟수 제한
+        """
+        attempts = 0
+        last_height = self.driver.execute_script("return document.body.scrollHeight")
+
+        while attempts < max_attempts:
+            # 페이지 끝까지 스크롤
+            self.driver.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);"
+            )
+            time.sleep(sleep)
+
+            # 스크롤 후 페이지 높이 확인
+            new_height = self.driver.execute_script("return document.body.scrollHeight")
+
+            # 페이지 높이가 더 이상 증가하지 않으면 종료
+            if new_height == last_height:
+                break
+
+            # 업데이트된 높이 저장 및 시도 횟수 증가
+            last_height = new_height
+            attempts += 1
+
+        if attempts == max_attempts:
+            self.logger.info(
+                f"최대 스크롤 시도에 도달하여 중지 총 시도 횟수: {attempts}"
+            )
 
     @staticmethod
     def _validate_selenium_input(by, expression, context="검색"):

@@ -38,7 +38,7 @@ class MusinsaScrapper(SeniumScraper):
 
         while scroll_attempts < max_scroll_attempts:
             # 페이지 끝까지 스크롤
-            self._scroll_page_to_end(sleep=0.5)  # 스크롤 후 충분히 대기
+            self.scroll_page_to_end(sleep=0.5)  # 스크롤 후 충분히 대기
 
             # 더보기 버튼 찾기
             more_button = self.find_element(
@@ -51,7 +51,9 @@ class MusinsaScrapper(SeniumScraper):
             # 더보기 버튼이 있으면 클릭
             if more_button:
                 more_button.click()
-                self._scroll_page_to_end(sleep=1)  # 추가 스크롤 후 충분히 대기
+                # self._scroll_page_to_end(sleep=1)  # 추가 스크롤 후 충분히 대기
+
+                self.scroll_page_to_end(sleep=1)
 
             else:
                 self.logger.info("더 이상 더보기 버튼이 없음 페이지 끝")
@@ -61,7 +63,7 @@ class MusinsaScrapper(SeniumScraper):
             scroll_attempts += 1
 
         # 추가 스크롤 후 충분히 대기
-        self._scroll_page_to_end(sleep=1)
+        self.scroll_page_to_end(sleep=1)
 
         link_elems = self.find_all_element(
             by=By.CSS_SELECTOR,
@@ -393,36 +395,6 @@ class MusinsaScrapper(SeniumScraper):
             "통신판매업신고",
             "영업소재지",
         ]
-
-    def _scroll_page_to_end(self, sleep=0.5, max_attempts=10):
-        """
-        웹 페이지가 끝까지 로드될 때까지 스크롤하는 메서드.
-        - sleep: 각 스크롤 후 대기 시간 (초)
-        - max_attempts: 스크롤 시도 횟수 제한
-        """
-        attempts = 0
-        last_height = self.driver.execute_script("return document.body.scrollHeight")
-
-        while attempts < max_attempts:
-            # 페이지 끝까지 스크롤
-            self.driver.execute_script(
-                "window.scrollTo(0, document.body.scrollHeight);"
-            )
-            time.sleep(sleep)
-
-            # 스크롤 후 페이지 높이 확인
-            new_height = self.driver.execute_script("return document.body.scrollHeight")
-
-            # 페이지 높이가 더 이상 증가하지 않으면 종료
-            if new_height == last_height:
-                break
-
-            # 업데이트된 높이 저장 및 시도 횟수 증가
-            last_height = new_height
-            attempts += 1
-
-        if attempts == max_attempts:
-            print(f"최대 스크롤 시도에 도달하여 중지합니다. 총 시도 횟수: {attempts}")
 
     def _scrap_kipris(self, brand_name):
         try:
