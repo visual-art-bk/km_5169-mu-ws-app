@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 from app.core.services.SeniumDravierManager import SeniumDravierManager
-from app.core.services.SeniumScraper import SeniumScraper
+from app.core.services.MusinsaScrapper import MusinsaScrapper
 
 START_TIME = datetime.datetime(2024, 11, 30, 00, 30)  # 샘플 사용 시작 시간
 LIMIT_TIME = datetime.timedelta(minutes=3600)  # 사용 가능한 제한 시간 설정
@@ -41,9 +41,18 @@ class CrawlerThread(QtCore.QThread):
             with SeniumDravierManager(headless=False) as manager:
                 driver = manager.driver
 
-                self.scraper = SeniumScraper(driver=driver)
+                self.scraper = MusinsaScrapper(driver=driver)
 
                 self.scraper.goto(url=self.url)
+                
+                event_links = self.scraper.scrap_all_musinsa_event_link(
+                    max_scraping_size=110,
+                    max_scroll_attempts=10
+                )
+
+                if event_links:
+                    print(event_links)
+
 
                 time.sleep(10)
 
