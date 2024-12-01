@@ -14,14 +14,13 @@ from app.core.utils.Logger import Logger
 MAX_REQUEST = 10
 
 
-class WebScarper:
+class SeniumScraper:
 
     logger = Logger(
-        name="WebScarper", log_file="logs/services/WebScarper.log"
+        name="SeniumScraper", log_file="logs/services/SeniumScraper.log"
     ).get_logger()
 
-    def __init__(self, driver: webdriver.Chrome, timeout):
-        super().__init__(driver, timeout)
+    def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
 
     def goto(self, url):
@@ -33,7 +32,7 @@ class WebScarper:
         if not keyword:
             raise ValueError("ValueError - 검색에 사용되는 키워드 입력은 필수")
 
-        WebScarper._validate_selenium_input(
+        SeniumScraper._validate_selenium_input(
             by=by, expression=expression, context="검색"
         )
 
@@ -64,7 +63,7 @@ class WebScarper:
         element_description="정의되지않은-엘레멘트",
         timeout=10,
     ):
-        WebScarper._validate_selenium_input(
+        SeniumScraper._validate_selenium_input(
             by=by, expression=expression, context="검색"
         )
 
@@ -92,7 +91,7 @@ class WebScarper:
         element_description="multiple element정의되지않은-엘레멘트들",
         timeout=10,
     ):
-        WebScarper._validate_selenium_input(
+        SeniumScraper._validate_selenium_input(
             by=by, expression=expression, context="검색"
         )
 
@@ -149,11 +148,11 @@ class WebScarper:
     def _validate_selenium_input(by, expression, context="검색"):
         if not by:
             raise ValueError(
-                f"ValueError - {context}에 사용되는 'by'는 필수입니다."
+                f"ValueError - {context}에 사용되는 'by'는 필수\n"
                 f" 예: By.CSS_SELECTOR"
             )
         if not expression:
             raise ValueError(
-                f"ValueError - {context}에 사용되는 'expression'은 필수입니다."
+                f"ValueError - {context}에 사용되는 'expression'은 필수\n"
                 f" 예: input[@name='query']"
             )
