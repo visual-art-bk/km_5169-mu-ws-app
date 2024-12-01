@@ -11,9 +11,8 @@ import shutil
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from app.core.utils.Logger import Logger
 
-class SeniumDravierManager:
-    
 
+class SeniumDravierManager:
     """SeniumDravierManager 클래스
     - 각 요청이 독립적인 Chrome 창을 열도록 설계
     """
@@ -24,11 +23,12 @@ class SeniumDravierManager:
         name="SeniumDravierManager", log_file="logs/services/SeniumDravierManager.log"
     ).get_logger()
 
-    def __init__(self):
+    def __init__(self, headless=False):
         self.driver = None
         self._request_count = 0  # 요청 횟수
         self._lock = threading.Lock()  # 동시성 제어를 위한 Lock
         self._temp_profile_dir = None  # 임시 프로필 디렉터리
+        self.options = {"headless": headless}
 
     def __enter__(self):
 
@@ -73,7 +73,9 @@ class SeniumDravierManager:
     def _configure_options(self):
         options = Options()
 
-        options.add_argument("--headless")
+        if self.options["headless"] == True:
+            options.add_argument("--headless")
+
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
