@@ -1,3 +1,5 @@
+logs
+
 winkm5169env
 
 build
@@ -6,6 +8,9 @@ dist
 
 .vscode
 
+.data
+
 **/__pycache__
 
 **/*.spec
+
