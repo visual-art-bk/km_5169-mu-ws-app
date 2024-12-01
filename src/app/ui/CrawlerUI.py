@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException, WebDriverExceptio
 from webdriver_manager.chrome import ChromeDriverManager
 from app.core.services.CrawlerThread import CrawlerThread
 
-START_TIME = datetime.datetime(2024, 11, 20, 13, 30)  # 샘플 사용 시작 시간
+START_TIME = datetime.datetime(2024, 12, 1, 00, 30)  # 샘플 사용 시작 시간
 LIMIT_TIME = datetime.timedelta(minutes=720)  # 사용 가능한 제한 시간 설정
 MAX_TITLES = 5  # 한 번에 수집할 블로그 타이틀의 최대 개수 설정
 
