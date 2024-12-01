@@ -30,14 +30,11 @@ class MusinsaScrapper(SeniumScraper):
 
     def scrap_all_musinsa_event_link(
         self,
-        target_link,
         max_scraping_size=100,
         max_scroll_attempts=10,
     ):
         collected_link_elems = list()
         scroll_attempts = 0
-
-        self.goto(url=target_link)
 
         while scroll_attempts < max_scroll_attempts:
             # 페이지 끝까지 스크롤
@@ -74,15 +71,15 @@ class MusinsaScrapper(SeniumScraper):
 
         if len(link_elems) == 0:
             self.logger.info(
-                "저장된 무신사 링크가 없음\n" f"타겟링크 {target_link } 확인필요"
+                "저장된 무신사 링크가 없음\n" f"타겟링크 {self.target_link} 확인필요"
             )
-            return False
+            return None
 
         for elem in link_elems:
             href = elem.get_attribute("href")
             self.event_links.append(href)
 
-        return True
+        return self.event_links
 
     def scrap_musinsa_brand_infos(
         self, link_list=None, json_file_path=None, start_index=0, end_index=None

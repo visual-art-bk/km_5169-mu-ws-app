@@ -22,9 +22,10 @@ class SeniumScraper:
 
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
-
+        self.target_link = None
+        
     def goto(self, url):
-
+        self.target_link = url
         self.driver.get(url)
         self.driver.maximize_window()
 
