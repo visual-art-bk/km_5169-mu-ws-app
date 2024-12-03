@@ -145,6 +145,31 @@ class SeniumScraper:
                 return True
             return False
 
+    def scroll_with_more_btn(
+        self, by, expression, max_scroll_attempts=10, timeout=10, sleep_for_loading=1
+    ):
+        more_btn = self.find_element(
+            by=by,
+            element_description="더보기버튼",
+            expression=expression,
+            timeout=timeout,
+        )
+
+        if not more_btn:
+            self.logger.info(f"By: {by}, Exp: {expression}에 해당하는 더보기버튼없음")
+            return False
+
+        scroll_attempts = 0
+        while scroll_attempts < max_scroll_attempts:
+            self.scroll_page_to_end(sleep=sleep_for_loading)
+
+            more_btn.click()
+
+            self.scroll_page_to_end(sleep=sleep_for_loading)
+
+            scroll_attempts += 1
+        return True
+
     def scroll_page_to_end(self, sleep=0.5, max_attempts=10):
         """
         웹 페이지가 끝까지 로드될 때까지 스크롤하는 메서드.
