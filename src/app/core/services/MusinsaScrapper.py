@@ -49,8 +49,6 @@ class MusinsaScrapper(SeniumScraper):
             href = elem.get_attribute("href")
             self.event_links.append(href)
 
-        FileMaker.save_list_to_json(list=self.event_links)
-
         return self.event_links
 
     def open_link_and_scrap(self, brand_links):
@@ -287,15 +285,7 @@ class MusinsaScrapper(SeniumScraper):
                 infos[f"{title}"] = props_matching_title
                 continue
 
-        # injected_infos_1 = self._inject_data_to_scraped(
-        #     info=infos, scrapped_name="브랜드 페이지", scrapped_value=
-        # )
-
-        # injected_infos_2 = self._inject_data_to_scraped(
-        #     info=injected_infos_1,
-        #     scrapped_name="영문명",
-        #     scrapped_value=f"{self._extract_brand_name(url=url)}",
-        # )
+        # scraping_result = self._scrap_kipris(brand_name=infos["브랜드"])
 
         injected_infos = self._inject_data_to_scraped(
             infos=infos,
@@ -304,13 +294,6 @@ class MusinsaScrapper(SeniumScraper):
                 {"영문명": self._extract_brand_name(url=url)},
             ],
         )
-        # scrapped_value_3 = self._scrap_kipris(brand_name=infos["브랜드"])
-
-        # injected_infos_3 = self._inject_data_to_scraped(
-        #     info=injected_infos_2,
-        #     scrapped_name="키프리스 바로가기",
-        #     scrapped_value=scrapped_value_3,
-        # )
 
         infos_list.append(injected_infos)  # 모든 키가 포함된 infos를 리스트에 추가
 
@@ -338,23 +321,45 @@ class MusinsaScrapper(SeniumScraper):
             return None
 
     def _scrap_kipris(self, brand_name):
+        scraping_result = True
+
         try:
+            # 새 탭 열기
+            self.driver.execute_script("window.open('');")
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+
+            # 키프리스 페이지로 이동
             self.driver.get(
                 "http://m.kipris.or.kr/mobile/mbl/search/searchResult.mdo#PT_MOVE"
             )
+            time.sleep(2)
 
+            # 서치박스 찾기 및 검색어 입력
             search_box = self.find_element(
                 by=By.CSS_SELECTOR,
                 element_description="키프리스-서치박스",
                 expression="input[name='searchQuery']",
             )
-
             search_box.send_keys(brand_name)
             search_box.submit()
-            pass
+
+            # submit 이후 Alert 처리
+            try:
+                # WebDriverWait(self.driver, 5).until(EC.alert_is_present())  # 최대 5초 기다림
+                alert = self.driver.switch_to.alert
+                self.logger.warning(f"Alert found with message: {alert.text}")
+                alert.accept()  # Alert 창 닫기 (확인 버튼 클릭)
+                self.logger.info("Alert handled successfully, terminating function.")
+                scraping_result = False
+
+            except Exception as e:
+                self.logger.info("No alert found after submit, proceeding.")
+
         except Exception as e:
-            print(e)
+            self.logger.exception(f"Error occurred during KIPRIS scraping: {e}")
 
         finally:
-            pass
-            # self.driver.close()
+            # 새 탭 닫기 및 원래 탭으로 돌아가기
+            self.driver.close()
+            self.driver.switch_to.window(self.driver.window_handles[0])
+            return scraping_result
