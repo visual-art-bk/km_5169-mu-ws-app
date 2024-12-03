@@ -244,7 +244,6 @@ class MusinsaScrapper(SeniumScraper):
 
             return did_dropped
 
-
     def scrap_brand_infos(self, url):
         # 특정 속성을 가진 div 요소 찾기
         opened_seller_infos = self.find_element(
@@ -288,27 +287,34 @@ class MusinsaScrapper(SeniumScraper):
                 infos[f"{title}"] = props_matching_title
                 continue
 
-        injected_infos_1 = self._inject_scrapped(
-            info=infos, scrapped_name="브랜드 페이지", scrapped_value=url
-        )
+        # injected_infos_1 = self._inject_data_to_scraped(
+        #     info=infos, scrapped_name="브랜드 페이지", scrapped_value=
+        # )
 
-        injected_infos_2 = self._inject_scrapped(
-            info=injected_infos_1,
-            scrapped_name="영문명",
-            scrapped_value=f"{self._extract_brand_name(url=url)}",
-        )
+        # injected_infos_2 = self._inject_data_to_scraped(
+        #     info=injected_infos_1,
+        #     scrapped_name="영문명",
+        #     scrapped_value=f"{self._extract_brand_name(url=url)}",
+        # )
 
+        injected_infos = self._inject_data_to_scraped(
+            infos=infos,
+            list_to_inject=[
+                {"브랜드 페이지": url},
+                {"영문명": self._extract_brand_name(url=url)},
+            ],
+        )
         # scrapped_value_3 = self._scrap_kipris(brand_name=infos["브랜드"])
 
-        # injected_infos_3 = self._inject_scrapped(
+        # injected_infos_3 = self._inject_data_to_scraped(
         #     info=injected_infos_2,
         #     scrapped_name="키프리스 바로가기",
         #     scrapped_value=scrapped_value_3,
         # )
 
-        infos_list.append(injected_infos_2)  # 모든 키가 포함된 infos를 리스트에 추가
+        infos_list.append(injected_infos)  # 모든 키가 포함된 infos를 리스트에 추가
 
-        return injected_infos_2
+        return injected_infos
 
     @classmethod
     def _extract_brand_name(cls, url):
@@ -318,65 +324,18 @@ class MusinsaScrapper(SeniumScraper):
         return brand_name
 
     @classmethod
-    def _inject_scrapped(self, info, scrapped_name, scrapped_value):
-        info[scrapped_name] = scrapped_value
-        return info
+    def _inject_data_to_scraped(self, infos: dict, list_to_inject: list):
+        try:
 
-    def save_to_excel(self, infos_list, file_name="infos_list", column_order=None):
-        # DataFrame 생성
-        df = pd.DataFrame(infos_list)
+            for injecting_info in list_to_inject:
+                infos.update(injecting_info)
 
-        # 칼럼 순서 지정
-        if column_order:
-            df = df[column_order]
-        else:
-            df = df[df.columns]
-
-        # 엑셀 파일로 임시 저장
-        temp_file = f"{file_name}_temp.xlsx"
-        df.to_excel(temp_file, index=False)
-
-        # openpyxl을 사용하여 하이퍼링크 추가
-        workbook = load_workbook(temp_file)
-        sheet = workbook.active
-
-        # "브랜드 페이지" 열 위치 찾기
-        brand_page_column = None
-        for col in sheet.iter_cols(1, sheet.max_column, 1, 1):
-            if col[0].value == "브랜드 페이지":
-                brand_page_column = col[0].column_letter
-                break
-
-        if brand_page_column is None:
-            raise ValueError("'브랜드 페이지'라는 열을 찾을 수 없습니다.")
-
-        # "브랜드 페이지" 열에서 URL을 하이퍼링크로 설정
-        for row in range(2, sheet.max_row + 1):  # 헤더 이후 데이터 행만 처리
-            cell = sheet[f"{brand_page_column}{row}"]
-            url = cell.value
-            if url:  # URL 값이 존재하는 경우
-                cell.value = "바로가기"  # 셀 텍스트 설정
-                cell.hyperlink = url  # 하이퍼링크 설정
-                cell.font = Font(
-                    color="0000FF", underline="single"
-                )  # 하이퍼링크 스타일 적용
-
-        # 최종 엑셀 파일 저장
-        workbook.save(f"{file_name}.xlsx")
-        workbook.close()
-
-    def make_excel_column_order(self):
-        return [
-            "브랜드",
-            "영문명",
-            "키프리스 바로가기" "상호 / 대표자",
-            "브랜드 페이지",
-            "연락처",
-            "E-mail",
-            "사업자번호",
-            "통신판매업신고",
-            "영업소재지",
-        ]
+            return infos
+        except Exception as e:
+            self.logger.exception(
+                "브랜드 정보리스트에 추가 리스트 주입 중 예외발생\n" f"예외메시지: {e}"
+            )
+            return None
 
     def _scrap_kipris(self, brand_name):
         try:
