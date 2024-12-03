@@ -244,20 +244,6 @@ class MusinsaScrapper(SeniumScraper):
 
             return did_dropped
 
-    def log_error(self, link, error_message):
-        # 로그 파일 경로 설정
-        log_file = os.path.join(self.log_path, "error_log.txt")
-
-        # 로그 디렉터리가 없으면 생성
-        os.makedirs(self.log_path, exist_ok=True)
-
-        # 로그 파일에 에러 메시지와 링크 저장
-        with open(log_file, "a") as file:
-            file.write(f"에러가 발생한 링크: {link}\n")
-            file.write(f"에러 메시지: {error_message}\n")
-            file.write("=========================================\n")
-
-        # print(f"에러가 발생한 링크를 로그 파일에 저장했습니다: {link}")
 
     def scrap_brand_infos(self, url):
         # 특정 속성을 가진 div 요소 찾기
@@ -312,13 +298,13 @@ class MusinsaScrapper(SeniumScraper):
             scrapped_value=f"{self._extract_brand_name(url=url)}",
         )
 
-        scrapped_value_3 = self._scrap_kipris(brand_name=infos["브랜드"])
+        # scrapped_value_3 = self._scrap_kipris(brand_name=infos["브랜드"])
 
-        injected_infos_3 = self._inject_scrapped(
-            info=injected_infos_2,
-            scrapped_name="키프리스 바로가기",
-            scrapped_value=scrapped_value_3,
-        )
+        # injected_infos_3 = self._inject_scrapped(
+        #     info=injected_infos_2,
+        #     scrapped_name="키프리스 바로가기",
+        #     scrapped_value=scrapped_value_3,
+        # )
 
         infos_list.append(injected_infos_2)  # 모든 키가 포함된 infos를 리스트에 추가
 
