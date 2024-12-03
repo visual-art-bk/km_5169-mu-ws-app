@@ -31,40 +31,8 @@ class MusinsaScrapper(SeniumScraper):
     def scrap_all_musinsa_event_link(
         self,
         max_scraping_size=100,
-        max_scroll_attempts=10,
+        # max_scroll_attempts=10,
     ):
-        collected_link_elems = list()
-        scroll_attempts = 0
-
-        while scroll_attempts < max_scroll_attempts:
-            # 페이지 끝까지 스크롤
-            self.scroll_page_to_end(sleep=0.5)  # 스크롤 후 충분히 대기
-
-            # 더보기 버튼 찾기
-            more_button = self.find_element(
-                by=By.XPATH,
-                element_description="더보기 버튼",
-                expression='//button[@data-button-name="더보기"]',
-                timeout=1,
-            )
-
-            # 더보기 버튼이 있으면 클릭
-            if more_button:
-                more_button.click()
-                # self._scroll_page_to_end(sleep=1)  # 추가 스크롤 후 충분히 대기
-
-                self.scroll_page_to_end(sleep=1)
-
-            else:
-                self.logger.info("더 이상 더보기 버튼이 없음 페이지 끝")
-                break  # 더보기 버튼이 없으면 루프 종료
-
-            # 스크롤 시도 횟수 증가
-            scroll_attempts += 1
-
-        # 추가 스크롤 후 충분히 대기
-        self.scroll_page_to_end(sleep=1)
-
         link_elems = self.find_all_element(
             by=By.CSS_SELECTOR,
             expression=".newbrand-list__thumbnail a",
@@ -77,13 +45,44 @@ class MusinsaScrapper(SeniumScraper):
             )
             return None
 
-        for elem in link_elems:
+        for elem in link_elems[:max_scraping_size]:
             href = elem.get_attribute("href")
             self.event_links.append(href)
 
+        self._save_list_to_json(list=self.event_links)
+
         return self.event_links
 
-    def scrap_musinsa_brand_infos(
+    def open_link_and_scrap(self, brand_links):
+        brands_info_list = []
+
+        for link in brand_links:
+            try:
+
+                self.driver.execute_script("window.open('');")
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+
+                self.driver.get(link)
+
+                self._click_first_prod_thumb(link=link)
+
+                self.drop_down_seller_infos(link_to_debug=link)
+
+                scraped = self.scrap_brand_infos(url=link)
+
+                brands_info_list.append(scraped)
+
+            except Exception as e:
+                self.logger.exception(
+                    f"브랜드 링크에서 스크래핑 중 에러발생:{e}\n" f"링크: {link}"
+                )
+            finally:
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
+
+        return brands_info_list
+
+    def scrap_musinsa_brand_infos_from_json(
         self, link_list=None, json_file_path=None, start_index=0, end_index=None
     ):
         # JSON 파일이 제공되면 JSON 파일에서 링크 리스트를 읽어옴
@@ -124,7 +123,7 @@ class MusinsaScrapper(SeniumScraper):
                     self._scraping_failed_brand_count += 1
                     continue
 
-                atomic_infos = self.scrap_atomic_infos(link)
+                atomic_infos = self.scrap_brand_infos(link)
                 all_brand_infos.append(atomic_infos)  # 전체 리스트에 추가
 
                 print(
@@ -153,11 +152,10 @@ class MusinsaScrapper(SeniumScraper):
 
         try:
 
-            thumb = self.efinder.find_element(
+            thumb = self.find_element(
                 by=By.CSS_SELECTOR,
                 element_description="첫번째상품썸네일",
                 expression="a.new-brand__goods-item",
-                is_loging=False,
             )
 
             if thumb == None:
@@ -202,14 +200,13 @@ class MusinsaScrapper(SeniumScraper):
 
         # time.sleep(1)
 
-        self._scroll_page_to_end(sleep=0.25)
+        self.scroll_page_to_end(sleep=0.25)
 
         try:
-            seller_info_btn = self.efinder.find_element(
+            seller_info_btn = self.find_element(
                 by=By.XPATH,
                 element_description="셀러정보",
                 expression='//div[@data-button-name="판매자정보보기"]',
-                is_loging=False,
                 timeout=1,
             )
 
@@ -262,13 +259,12 @@ class MusinsaScrapper(SeniumScraper):
 
         # print(f"에러가 발생한 링크를 로그 파일에 저장했습니다: {link}")
 
-    def scrap_atomic_infos(self, url):
+    def scrap_brand_infos(self, url):
         # 특정 속성을 가진 div 요소 찾기
-        opened_seller_infos = self.efinder.find_element(
+        opened_seller_infos = self.find_element(
             by=By.XPATH,
             element_description="열린판매자정보",
             expression='//div[@data-state="open" and @data-orientation="vertical"]',
-            is_loging=False,
             timeout=1,
         )
 
@@ -324,7 +320,7 @@ class MusinsaScrapper(SeniumScraper):
             scrapped_value=scrapped_value_3,
         )
 
-        infos_list.append(injected_infos_3)  # 모든 키가 포함된 infos를 리스트에 추가
+        infos_list.append(injected_infos_2)  # 모든 키가 포함된 infos를 리스트에 추가
 
         return injected_infos_2
 
@@ -402,7 +398,7 @@ class MusinsaScrapper(SeniumScraper):
                 "http://m.kipris.or.kr/mobile/mbl/search/searchResult.mdo#PT_MOVE"
             )
 
-            search_box = self.efinder.find_element(
+            search_box = self.find_element(
                 by=By.CSS_SELECTOR,
                 element_description="키프리스-서치박스",
                 expression="input[name='searchQuery']",
@@ -415,17 +411,18 @@ class MusinsaScrapper(SeniumScraper):
             print(e)
 
         finally:
-            self.driver.close()
+            pass
+            # self.driver.close()
 
-    def _save_link_elems_to_json(self):
+    def _save_list_to_json(self, list):
 
-        if len(self.event_links) == 0:
+        if len(list) == 0:
             self.logger.info("json파일저장실패, 저장된 링크 없음")
             return False
 
         json_file_path = ".data/musinsa_event_links.json"
 
         with open(json_file_path, "w", encoding="utf-8") as json_file:
-            json.dump(self.event_links, json_file, ensure_ascii=False, indent=4)
+            json.dump(list, json_file, ensure_ascii=False, indent=4)
 
-        print(f"총 {len(self.event_links)}개의 링크를 {json_file_path} 파일에 저장완료")
+        print(f"총 {len(list)}개의 링크를 {json_file_path} 파일에 저장완료")
