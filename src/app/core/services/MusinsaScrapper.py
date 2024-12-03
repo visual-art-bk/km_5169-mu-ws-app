@@ -12,7 +12,7 @@ import json
 from selenium import webdriver
 from app.core.services.SeniumDravierManager import SeniumDravierManager
 from app.core.services.SeniumScraper import SeniumScraper
-from app.core.utils.Logger import Logger
+from app.core.utils import Logger, FileMaker
 
 
 class MusinsaScrapper(SeniumScraper):
@@ -49,7 +49,7 @@ class MusinsaScrapper(SeniumScraper):
             href = elem.get_attribute("href")
             self.event_links.append(href)
 
-        self._save_list_to_json(list=self.event_links)
+        FileMaker.save_list_to_json(list=self.event_links)
 
         return self.event_links
 
@@ -413,16 +413,3 @@ class MusinsaScrapper(SeniumScraper):
         finally:
             pass
             # self.driver.close()
-
-    def _save_list_to_json(self, list):
-
-        if len(list) == 0:
-            self.logger.info("json파일저장실패, 저장된 링크 없음")
-            return False
-
-        json_file_path = ".data/musinsa_event_links.json"
-
-        with open(json_file_path, "w", encoding="utf-8") as json_file:
-            json.dump(list, json_file, ensure_ascii=False, indent=4)
-
-        print(f"총 {len(list)}개의 링크를 {json_file_path} 파일에 저장완료")
