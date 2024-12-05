@@ -1,24 +1,18 @@
 import sys
-import traceback
-import datetime
-from PyQt5 import QtWidgets, QtGui, QtCore
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
-from webdriver_manager.chrome import ChromeDriverManager
-from app.ui.CrawlerUI import CrawlerUI
+from PySide6 import QtWidgets  # PySide6로 변경 (PyQt5 사용 시 PyQt5로 대체)
+from app.ui.CrawlerUI import CrawlerUI  # CrawlerUI 클래스가 정의된 모듈을 가져옵니다.
 
 def main():
-    # PyQt5 애플리케이션 초기화 및 실행
-    app = QtWidgets.QApplication(sys.argv)  # QApplication 객체 생성
+    # QApplication 객체 생성 (가장 먼저 실행)
+    app = QtWidgets.QApplication(sys.argv)
 
-    ex = CrawlerUI()  # CrawlerUI 객체 생성 및 실행
+    # 메인 창 생성
+    main_window = CrawlerUI()
+    main_window.show()
 
-    ex.show()  # UI 표시
-    
-    sys.exit(app.exec_())  # 이벤트 루프 실행 및 종료 처리
+    # 이벤트 루프 실행
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
-    main()  # 스크립트가 직접 실행될 경우 main() 함수 호출
+    main()  # main 함수 실행
