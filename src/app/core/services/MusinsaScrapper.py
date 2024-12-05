@@ -31,7 +31,6 @@ class MusinsaScrapper(SeniumScraper):
     def scrap_all_musinsa_event_link(
         self,
         max_scraping_size=100,
-        # max_scroll_attempts=10,
     ):
         link_elems = self.find_all_element(
             by=By.CSS_SELECTOR,
@@ -79,71 +78,6 @@ class MusinsaScrapper(SeniumScraper):
                 self.driver.switch_to.window(self.driver.window_handles[0])
 
         return brands_info_list
-
-    def scrap_musinsa_brand_infos_from_json(
-        self, link_list=None, json_file_path=None, start_index=0, end_index=None
-    ):
-        # JSON 파일이 제공되면 JSON 파일에서 링크 리스트를 읽어옴
-        if json_file_path:
-            with open(json_file_path, "r", encoding="utf-8") as json_file:
-                link_list = json.load(json_file)
-            print(f"JSON 파일에서 {len(link_list)}개의 링크를 읽어왔습니다.")
-
-        # JSON 파일과 링크 리스트가 모두 없는 경우 에러 처리
-        if not link_list:
-            raise ValueError("링크 리스트 또는 JSON 파일 경로가 필요합니다.")
-
-        # end_index가 설정된 경우 범위를 벗어나지 않도록 조정
-        if end_index is not None:
-            if end_index > len(link_list):
-                end_index = len(link_list)
-            link_list = link_list[start_index:end_index]
-        else:
-            link_list = link_list[start_index:]
-
-        all_brand_infos = list()
-
-        # 시작점과 종료점 범위 내에서 순회
-        for index, link in enumerate(link_list, start=start_index):
-            self.driver.execute_script("window.open('');")
-            self.driver.switch_to.window(self.driver.window_handles[-1])
-
-            self.driver.get(link)
-
-            try:
-                is_clickable = self._click_first_prod_thumb(link=link)
-                if not is_clickable:
-                    self._scraping_failed_brand_count += 1
-                    continue
-
-                is_dropdownable = self.drop_down_seller_infos(link_to_debug=link)
-                if not is_dropdownable:
-                    self._scraping_failed_brand_count += 1
-                    continue
-
-                atomic_infos = self.scrap_brand_infos(link)
-                all_brand_infos.append(atomic_infos)  # 전체 리스트에 추가
-
-                print(
-                    f"{index + 1 - self._scraping_failed_brand_count}개의 브랜드 정보 저장완료."
-                )
-                print(f"{self._scraping_failed_brand_count}개의 브랜드 정보 저장실패.")
-
-                # 100개씩 수집될 때마다 저장
-                if len(all_brand_infos) % 100 == 0:
-                    file_name = f"musinsa_brand_infos_part_{index + 1}.xlsx"
-                    self.save_to_excel(all_brand_infos, file_name=file_name)
-
-            except Exception as e:
-                self.log_error(link, str(e))  # 에러 발생 시 링크와 메시지 로그에 기록
-
-            finally:
-                self.driver.close()
-                self.driver.switch_to.window(self.driver.window_handles[0])
-
-        # 모든 수집이 끝난 후 최종 저장
-        self.save_to_excel(all_brand_infos, file_name="musinsa_brand_infos_full.xlsx")
-        return all_brand_infos
 
     def _click_first_prod_thumb(self, link):
         is_clickable = False
@@ -329,9 +263,7 @@ class MusinsaScrapper(SeniumScraper):
             self.driver.switch_to.window(self.driver.window_handles[-1])
 
             # 키프리스 페이지로 이동
-            self.driver.get(
-                "http://m.kipris.or.kr/mobile/mbl/search/searchResult.mdo#PT_MOVE"
-            )
+            self.driver.get("http://m.kipris.or.kr/mobile/index.jsp")
             time.sleep(2)
 
             # 서치박스 찾기 및 검색어 입력
