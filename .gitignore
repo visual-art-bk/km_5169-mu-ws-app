@@ -1,10 +1,12 @@
-logs
+.logs
 
 winkm5169env
 
 build
 
 dist
+
+drivers
 
 .vscode
 
@@ -15,3 +17,5 @@ dist
 **/*.spec
 
 *.xlsx
+
+상표권출원등록사진

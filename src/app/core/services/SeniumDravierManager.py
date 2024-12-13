@@ -20,7 +20,7 @@ class SeniumDravierManager:
     MAX_REQUEST = 10
 
     logger = Logger(
-        name="SeniumDravierManager", log_file="logs/services/SeniumDravierManager.log"
+        name="SeniumDravierManager", log_file="SeniumDravierManager.log"
     ).get_logger()
 
     def __init__(self, headless=False):
@@ -80,8 +80,13 @@ class SeniumDravierManager:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument("--blink-settings=imagesEnabled=false")
-        options.page_load_strategy = "eager"
+        # options.add_argument("--blink-settings=imagesEnabled=false")
+        
+        # options.add_argument("--disable-webgl")  # WebGL 비활성화
+        # options.add_argument("--disable-gpu")  # GPU 사용 비활성화
+        options.add_argument("--enable-unsafe-swiftshader")  # SwiftShader 강제 사용
+
+        options.page_load_strategy = "normal"
 
         # 고유한 사용자 데이터 디렉터리 생성
         self._temp_profile_dir = tempfile.mkdtemp()

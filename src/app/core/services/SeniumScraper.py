@@ -17,7 +17,7 @@ MAX_REQUEST = 10
 class SeniumScraper:
 
     logger = Logger(
-        name="SeniumScraper", log_file="logs/services/SeniumScraper.log"
+        name="SeniumScraper", log_file="SeniumScraper.log"
     ).get_logger()
 
     def __init__(self, driver: webdriver.Chrome):
@@ -50,10 +50,9 @@ class SeniumScraper:
             search_box.send_keys(keyword)
             search_box.submit()
             return True
-
         except Exception as e:
-            self.logger.exception(
-                f"{expression} 을 사용한 검색창 폼에 키웓드 검색에서 예외 발생"
+            SeniumScraper.handle_exception(
+                expression=expression, context="검색창 폼 엘리멘트", exception=e
             )
             return False
 
@@ -71,7 +70,7 @@ class SeniumScraper:
         try:
 
             element = WebDriverWait(self.driver, timeout=timeout).until(
-                EC.presence_of_element_located((by, expression))
+                EC.visibility_of_element_located((by, expression))
             )
 
             if not element:
@@ -81,7 +80,9 @@ class SeniumScraper:
             return element
 
         except Exception as e:
-            self.logger.exception(f"{expression} 에 매칭되는 엘리멘트 찾는 중 예외발생")
+            SeniumScraper.handle_exception(
+                expression=expression, context=element_description, exception=e
+            )
 
             return None
 
@@ -107,10 +108,32 @@ class SeniumScraper:
                 return None
 
             return elements
-        except Exception as e:
 
-            self.logger.exception(
-                f"{expression} 에 매칭되는 엘리멘트들을 찾는 중 예외발생"
+        except Exception as e:
+            SeniumScraper.handle_exception(
+                expression=expression, context=element_description, exception=e
+            )
+
+            return None
+
+    def find_element_in_parent(
+        self,
+        parent,
+        by,
+        expression="정의되지않음",
+        element_description="multiple element정의되지않은-엘레멘트들",
+        timeout=10,
+    ):
+        try:
+            children = WebDriverWait(parent, timeout=timeout).until(
+                EC.presence_of_element_located((by, expression))
+            )
+
+            return children
+
+        except Exception as e:
+            SeniumScraper.handle_exception(
+                expression=expression, context=element_description, exception=e
             )
 
             return None
@@ -122,10 +145,15 @@ class SeniumScraper:
         :param iframe_locator: iframe을 찾기 위한 Selenium By locator (예: (By.ID, "iframe-id"))
         :param timeout: iframe 탐색 대기 시간 (기본값: 10초)
         """
+        element_description = "iframe"
+        expression = "iframe"
+
         try:
 
             iframe = self.find_element(
-                by=By.CSS_SELECTOR, element_description="iframe", expression="iframe"
+                by=By.CSS_SELECTOR,
+                element_description=element_description,
+                expression=expression,
             )
 
             if not iframe:
@@ -136,6 +164,11 @@ class SeniumScraper:
             self.logger.info(f"iframe 전환 성공")
 
             yield
+
+        except Exception as e:
+            SeniumScraper.handle_exception(
+                expression=expression, context=element_description, exception=e
+            )
 
         finally:
             if iframe:
@@ -148,16 +181,27 @@ class SeniumScraper:
     def scroll_with_more_btn(
         self, by, expression, max_scroll_attempts=10, timeout=10, sleep_for_loading=1
     ):
-        more_btn = self.find_element(
-            by=by,
-            element_description="더보기버튼",
-            expression=expression,
-            timeout=timeout,
-        )
+        element_description = "더보기버튼"
 
-        if not more_btn:
-            self.logger.info(f"By: {by}, Exp: {expression}에 해당하는 더보기버튼없음")
-            return False
+        more_btn = None
+        try:
+
+            more_btn = self.find_element(
+                by=by,
+                element_description=element_description,
+                expression=expression,
+                timeout=timeout,
+            )
+
+            if not more_btn:
+                self.logger.info(
+                    f"By: {by}, Exp: {expression}에 해당하는 더보기버튼없음"
+                )
+                return False
+        except Exception as e:
+            SeniumScraper.handle_exception(
+                expression=expression, context=element_description, exception=e
+            )
 
         scroll_attempts = 0
         while scroll_attempts < max_scroll_attempts:
@@ -213,4 +257,28 @@ class SeniumScraper:
             raise ValueError(
                 f"ValueError - {context}에 사용되는 'expression'은 필수\n"
                 f" 예: input[@name='query']"
+            )
+
+    @staticmethod
+    def handle_exception(context, expression, exception):
+        """
+        공통 예외 처리 함수.
+        :param context: 현재 실행 중인 컨텍스트 설명 (예: "엘리먼트 찾기")
+        :param expression: 처리 중이던 Selenium의 표현식
+        :param exception: 발생한 예외 객체
+        """
+        if isinstance(exception, TimeoutException):
+            SeniumScraper.logger.exception(
+                f"TimeoutException: {context}에서 '{expression}' 처리 중 시간초과\n"
+                f"Msg: {exception}"
+            )
+        elif isinstance(exception, NoSuchElementException):
+            SeniumScraper.logger.exception(
+                f"NoSuchElementException: {context}에서 '{expression}' 처리 중 엘리먼트 없음\n"
+                f"Msg: {exception}"
+            )
+        else:
+            SeniumScraper.logger.exception(
+                f"Exception: {context}에서 '{expression}' 처리 중 예외 발생\n"
+                f"Msg: {exception}"
             )
