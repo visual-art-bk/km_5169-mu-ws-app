@@ -50,19 +50,16 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle("크롤러 v.1.3.1")  # 창 제목 설정
         layout = QtWidgets.QVBoxLayout()  # 레이아웃 설정
 
+        self._set_ui_appearance()
+
         self._set_ui_window_controls(layout)
 
         self._set_ui_status_window(layout)
 
-
-        # 최대 크롤링 개수를 설정하는 입력 필드 추가
-        self.scraping_size_input = QtWidgets.QSpinBox()
-        self.scraping_size_input.setRange(1, 500)  # 1 ~ 500 사이 값 입력 가능
-        self.scraping_size_input.setValue(50)  # 기본값 50
-        layout.addWidget(QtWidgets.QLabel("최대 크롤링 개수:"))
-        layout.addWidget(self.scraping_size_input)
+        self._set_ui_scraping_size_box(layout)
 
         self.start_button = QtWidgets.QPushButton("크롤링 시작")
+
         self.start_button.clicked.connect(
             self.start_crawling
         )  # 클릭 시 실행될 함수 연결
@@ -84,7 +81,7 @@ class MainWindow(QtWidgets.QWidget):
         self._set_window_size(scale=0.75)
 
         ## 배경색과 코너 radius는 클래스최상단 paintEvent, resizeEvent 참조
-        self._set_ui_appearance()
+    
 
         self.setLayout(layout)  # 설정된 레이아웃 적용
 
@@ -102,8 +99,39 @@ class MainWindow(QtWidgets.QWidget):
 
     def _set_ui_status_window(self, layout: QVBoxLayout):
         # 상태 로그
-        self.status_label = win.StatusDisplayer("크롤링이 임무를 기다리고 있어요")
+        self.status_label = win.StatusDisplayer("크롤러가 임무를 기다리고 있어요")
         layout.addWidget(self.status_label)
+
+    def _set_ui_scraping_size_box(self, layout: QVBoxLayout):
+        # 수평 레이아웃 생성
+        horizontal_layout = QtWidgets.QHBoxLayout()
+
+        # 라벨 생성 및 추가
+        scraping_label = QtWidgets.QLabel("크롤링 개수:")
+        horizontal_layout.addWidget(scraping_label)  # 수평 레이아웃에 라벨 추가
+
+        # QSpinBox 생성 및 추가
+        self._scraping_size_input = QtWidgets.QSpinBox()
+        self._scraping_size_input.setRange(1, 500)
+        self._scraping_size_input.setValue(50)
+        self._scraping_size_input.setSingleStep(10)
+        self._scraping_size_input.setSuffix(" 개")
+
+        # 크기 정책 및 최소 너비 설정
+        self._scraping_size_input.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding,  # 가로로 확장 가능
+            QtWidgets.QSizePolicy.Fixed       # 세로는 고정
+        )
+        self._scraping_size_input.setMinimumWidth(200)  # 최소 너비 설정
+
+        horizontal_layout.addWidget(self._scraping_size_input)  # 수평 레이아웃에 SpinBox 추가
+
+        # 라벨과 SpinBox 간격 설정
+        horizontal_layout.setSpacing(5)  # 간격을 5픽셀로 설정 (원하는 대로 조정 가능)
+
+        # 수평 레이아웃을 메인 레이아웃에 추가
+        layout.addLayout(horizontal_layout)
+
 
     def log_status(self, message):
         self.status_label.append(message)
@@ -133,7 +161,7 @@ class MainWindow(QtWidgets.QWidget):
         self.log_status(f"크롤링 시작합니다 - {url}")
 
         # 사용자가 입력한 max_scraping_size 값을 가져옴
-        max_scraping_size = self.scraping_size_input.value()
+        max_scraping_size = self._scraping_size_input.value()
 
         # 크롤러 스레드 생성 및 설정
         self.crawler_thread = CrawlerThread(url)
