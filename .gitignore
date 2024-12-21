@@ -12,6 +12,8 @@ drivers
 
 .data
 
+workspace-km_5169-mu-ws-app*
+
 **/__pycache__
 
 **/*.spec
