@@ -84,8 +84,8 @@ class CrawlerUI(QtWidgets.QWidget):
         return True
 
     def start_crawling(self):
-        if not self.check_time_limit():
-            return
+        # if not self.check_time_limit():
+        #     return
 
         self.save_button.setStyleSheet("background-color: lightcoral; color: white;")
         self.save_button.setEnabled(False)
