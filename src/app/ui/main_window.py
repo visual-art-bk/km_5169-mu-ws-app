@@ -2,12 +2,15 @@ import sys
 import traceback
 import datetime
 from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtWidgets import QVBoxLayout
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 from app.core.services.CrawlerThread import CrawlerThread
 from app.core.utils.FileMaker import FileMaker
+from app.ui.styles import window_appearance as win_appear
+from app.ui.widgets import buttons as btn
 
 START_TIME = datetime.datetime(2024, 12, 10, 9, 00)  # 샘플 사용 시작 시간
 LIMIT_TIME = datetime.timedelta(minutes=60 * 24 * 7)  # 사용 가능한 제한 시간 설정
@@ -15,6 +18,14 @@ MAX_TITLES = 5  # 한 번에 수집할 블로그 타이틀의 최대 개수 설�
 
 
 class MainWindow(QtWidgets.QWidget):
+    def paintEvent(self, event):
+        """둥근 모서리 배경 그리기"""
+        win_appear.paint_rounded_background(self, event, radius=30)
+
+    def resizeEvent(self, event):
+        """리사이즈 시 둥근 모서리 재적용"""
+        win_appear.apply_rounded_corners(self, radius=30)
+
     def __init__(self):
         super().__init__()
 
@@ -37,6 +48,8 @@ class MainWindow(QtWidgets.QWidget):
     def initUI(self):
         self.setWindowTitle("크롤러 v.1.3.1")  # 창 제목 설정
         layout = QtWidgets.QVBoxLayout()  # 레이아웃 설정
+        self._set_ui_window_controls(layout)
+
 
         self.status_label = QtWidgets.QTextEdit("현재 상태: 대기 중...")
         self.status_label.setReadOnly(True)  # 읽기 전용으로 설정
@@ -68,8 +81,26 @@ class MainWindow(QtWidgets.QWidget):
 
         self.progress_label = QtWidgets.QLabel("수집된 브랜드 수: 0")  # 초기화
 
+        self._set_window_size(scale=0.75)
+
+        ## 배경색과 코너 radius는 클래스최상단 paintEvent, resizeEvent 참조
+        self._set_ui_appearance()
+
+
         self.setLayout(layout)  # 설정된 레이아웃 적용
 
+    def _set_window_size(self, scale, width=430, height=932):
+        scaled = (int(width * scale), int(height * scale))
+        self.setFixedSize(*scaled)
+
+    def _set_ui_appearance(self):
+        win_appear.set_translucent_background(self)
+        win_appear.apply_drop_shadow(self)
+
+    def _set_ui_window_controls(self, layout: QVBoxLayout):
+        self.window_controls = btn.WindowControls(self)
+        self.window_controls.add_to_main_layout(layout)
+        
     def log_status(self, message):
         self.status_label.append(message)
 
