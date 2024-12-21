@@ -10,6 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from app.core.services.CrawlerThread import CrawlerThread
 from app.core.utils.FileMaker import FileMaker
 from app.ui.styles import window_appearance as win_appear
+from app.ui.widgets import windows as win
 from app.ui.widgets import buttons as btn
 
 START_TIME = datetime.datetime(2024, 12, 10, 9, 00)  # 샘플 사용 시작 시간
@@ -48,12 +49,11 @@ class MainWindow(QtWidgets.QWidget):
     def initUI(self):
         self.setWindowTitle("크롤러 v.1.3.1")  # 창 제목 설정
         layout = QtWidgets.QVBoxLayout()  # 레이아웃 설정
+
         self._set_ui_window_controls(layout)
 
+        self._set_ui_status_window(layout)
 
-        self.status_label = QtWidgets.QTextEdit("현재 상태: 대기 중...")
-        self.status_label.setReadOnly(True)  # 읽기 전용으로 설정
-        layout.addWidget(self.status_label)
 
         # 최대 크롤링 개수를 설정하는 입력 필드 추가
         self.scraping_size_input = QtWidgets.QSpinBox()
@@ -86,7 +86,6 @@ class MainWindow(QtWidgets.QWidget):
         ## 배경색과 코너 radius는 클래스최상단 paintEvent, resizeEvent 참조
         self._set_ui_appearance()
 
-
         self.setLayout(layout)  # 설정된 레이아웃 적용
 
     def _set_window_size(self, scale, width=430, height=932):
@@ -100,7 +99,12 @@ class MainWindow(QtWidgets.QWidget):
     def _set_ui_window_controls(self, layout: QVBoxLayout):
         self.window_controls = btn.WindowControls(self)
         self.window_controls.add_to_main_layout(layout)
-        
+
+    def _set_ui_status_window(self, layout: QVBoxLayout):
+        # 상태 로그
+        self.status_label = win.StatusDisplayer("크롤링이 임무를 기다리고 있어요")
+        layout.addWidget(self.status_label)
+
     def log_status(self, message):
         self.status_label.append(message)
 
