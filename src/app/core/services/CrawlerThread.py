@@ -30,7 +30,7 @@ class CrawlerThread(QtCore.QThread):
             # max_scroll_attempts를 max_scraping_size의 비율에 따라 계산
             max_scroll_attempts = max(5, self.max_scraping_size // 10)
 
-            with SeniumDravierManager(headless=False) as manager:
+            with SeniumDravierManager(headless=True) as manager:
                 driver = manager.driver
                 self.scraper = MusinsaScrapper(driver=driver)
 
