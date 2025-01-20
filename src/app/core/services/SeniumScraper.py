@@ -16,18 +16,18 @@ MAX_REQUEST = 10
 
 class SeniumScraper:
 
-    logger = Logger(
-        name="SeniumScraper", log_file="SeniumScraper.log"
-    ).get_logger()
+    logger = Logger(name="SeniumScraper", log_file="SeniumScraper.log").get_logger()
 
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
         self.target_link = None
+        self._cookies = []
 
     def goto(self, url):
         self.target_link = url
         self.driver.get(url)
         self.driver.maximize_window()
+        self._cookies = self.driver.get_cookies()
 
     def search_keyword_in_form(self, keyword, by, expression):
         if not keyword:
@@ -178,6 +178,30 @@ class SeniumScraper:
                 return True
             return False
 
+    def scroll_element_into_view_center(self, target, timeout=10):
+        """
+        Scrolls the specified element into the center of the viewport
+        and waits until it is visible and centered.
+
+        Parameters:
+        target (WebElement): The WebElement to be scrolled into view.
+        timeout (int): Maximum wait time in seconds (default: 10).
+        """
+        try:
+            # 스크롤 실행
+            self.driver.execute_script(
+                "arguments[0].scrollIntoView({block: 'center'});", target
+            )
+
+            # 요소가 화면 중앙에 위치할 때까지 기다리기
+            WebDriverWait(self.driver, timeout).until(
+                lambda driver: target.is_displayed()  # 요소가 보이는지 확인
+            )
+        except Exception as e:
+            SeniumScraper.handle_exception(
+                context="스크래핑한 요소를 화면 중앙으로 스크롤", exception=e
+            )
+
     def scroll_with_more_btn(
         self, by, expression, max_scroll_attempts=10, timeout=10, sleep_for_loading=1
     ):
@@ -235,6 +259,7 @@ class SeniumScraper:
 
             # 페이지 높이가 더 이상 증가하지 않으면 종료
             if new_height == last_height:
+                self.logger.info(f"총 {attempts}번 페이지 끝까지 스크롤 시도했음")
                 break
 
             # 업데이트된 높이 저장 및 시도 횟수 증가

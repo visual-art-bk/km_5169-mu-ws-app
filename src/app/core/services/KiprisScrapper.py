@@ -274,9 +274,15 @@ class KiprisScrapper(SeniumScraper):
             return None
 
     def _goto_kipris_searchbox(self, brand_name, timeout=10):
+
+        if not self.driver or not self.driver.service.is_connectable():
+            print("드라이버가 종료되어 재초기화합니다.")
+
+            self.driver = SeniumDravierManager(headless=True)._init_driver()
+ 
         try:
-            self.driver.execute_script("window.open('');")
-            self.driver.switch_to.window(self.driver.window_handles[-1])
+            # self.driver.execute_script("window.open('');")
+            # self.driver.switch_to.window(self.driver.window_handles[-1])
 
             # 키프리스 페이지로 이동
             self.driver.get("http://m.kipris.or.kr/mobile/index.jsp")
@@ -306,14 +312,7 @@ class KiprisScrapper(SeniumScraper):
             )
 
     def _close_kipris(self):
-        try:
-
-            self.driver.close()
-            self.driver.switch_to.window(self.driver.window_handles[0])
-        except Exception as e:
-            logger.log_exception(
-                message=f"키프리스 탭 닫는중 // 브랜드-{self._target_brand_name}", obj=e
-            )
+        pass
 
     def _check_loading_bar(self, timeout_check_bar=3, timeout_for_loading_bar=30):
         try:

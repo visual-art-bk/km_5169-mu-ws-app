@@ -11,6 +11,10 @@ import shutil
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from app.core.utils.Logger import Logger
 
+logger = Logger(
+    name="SeniumDravierManager", log_file="SeniumDravierManager.log"
+).get_logger()
+
 
 class SeniumDravierManager:
     """SeniumDravierManager 클래스
@@ -40,9 +44,7 @@ class SeniumDravierManager:
             return self  # self 반환 (manager로 사용)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-
-        with self._lock:
-            self._quit_driver()
+        self._quit_driver()
 
     def _init_driver(self):
         options = self._configure_options()
@@ -81,7 +83,7 @@ class SeniumDravierManager:
         options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
         # options.add_argument("--blink-settings=imagesEnabled=false")
-        
+
         # options.add_argument("--disable-webgl")  # WebGL 비활성화
         # options.add_argument("--disable-gpu")  # GPU 사용 비활성화
         options.add_argument("--enable-unsafe-swiftshader")  # SwiftShader 강제 사용
@@ -100,6 +102,9 @@ class SeniumDravierManager:
         # 사용자 에이전트
         options.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.140 Safari/537.36"
+        )
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
         )
         options.add_argument("--disable-blink-features=AutomationControlled")
         return options

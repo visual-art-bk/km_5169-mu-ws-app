@@ -8,7 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 from app.core.services.SeniumDravierManager import SeniumDravierManager
 from app.core.services.MusinsaScrapper import MusinsaScrapper
-from app.core.services.KiprisScrapper import KiprisScrapper
 
 
 class CrawlerThread(QtCore.QThread):
