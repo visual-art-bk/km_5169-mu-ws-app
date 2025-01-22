@@ -49,7 +49,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mountWidgets()  # UI 초기화 함수 호출
 
     def mountWidgets(self):
-        self.setWindowTitle("크롤러 v.1.3.1")  # 창 제목 설정
+        self.setWindowTitle("크롤러 v.1.4.0")  # 창 제목 설정
 
         central_widget = QtWidgets.QWidget(self)
         layout = QtWidgets.QVBoxLayout(central_widget)
@@ -320,12 +320,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def check_time_limit(self):
         current_time = datetime.datetime.now()
-        if current_time - self.start_time > self.sample_time_limit:
-            QtWidgets.QMessageBox.warning(
-                self, "사용 시간 종료", "샘플 사용 시간이 끝났어요."
-            )
-            self.start_button.setEnabled(False)  # 크롤링 시작 버튼 비활성화
-            return False
+        # if current_time - self.start_time > self.sample_time_limit:
+        #     QtWidgets.QMessageBox.warning(
+        #         self, "사용 시간 종료", "샘플 사용 시간이 끝났어요."
+        #     )
+        #     self.start_button.setEnabled(False)  # 크롤링 시작 버튼 비활성화
+        #     return False
         return True
 
     def _connect_signals(self):

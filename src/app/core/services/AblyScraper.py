@@ -27,7 +27,6 @@ from selenium.common.exceptions import TimeoutException
 from .KiprisScrapper import KiprisScrapper
 from bs4 import BeautifulSoup
 import requests
-from selenium_stealth import stealth
 
 logger = Logger(name="AblyScraper", log_file="AblyScraper.log").get_logger()
 
